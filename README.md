@@ -14,10 +14,10 @@ Developed by data scientists at ING Analytics, www.ing.com.
 
 ### Normal installation
 
-Install after cloning this repo:
+Install using PyPi:
 
 ```
-pip install .
+pip install spark-matcher
 ```
 
 ### Install with possibility to create documentation
