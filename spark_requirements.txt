@@ -1,0 +1,4 @@
+thefuzz
+pandas
+scikit-learn
+pyarrow
