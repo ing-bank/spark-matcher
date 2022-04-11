@@ -1,4 +1,4 @@
-![spark_matcher_logo](docs/source/_static/spark_matcher_logo.png)
+![spark_matcher_logo](https://spark-matcher.readthedocs.io/en/latest/_images/spark_matcher_logo.png)
 
 # Spark-Matcher
 
