@@ -44,6 +44,7 @@ setup(name='Spark-Matcher',
           "Operating System :: OS Independent",
       ],
       packages=find_packages(exclude=['examples']),
+      package_data={"spark_matcher": ["data/*.csv"]},
       install_requires=base_packages,
       extras_require={
           "base": base_packages,
