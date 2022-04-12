@@ -14,8 +14,10 @@
 Spark-Matcher is a scalable entity matching algorithm implemented in PySpark. With Spark-Matcher the user can easily
 train an algorithm to solve a custom matching problem. Spark Matcher uses active learning (modAL) to train a
 classifier (Scikit-learn) to match entities. In order to deal with the N^2 complexity of matching large tables, blocking is
-implemented to reduce the number of pairs. Since the implementation is done in PySpark, Spark Matcher can deal with
+implemented to reduce the number of pairs. Since the implementation is done in PySpark, Spark-Matcher can deal with
 extremely large tables.
+
+Documentation with examples can be found [here](https://spark-matcher.readthedocs.io/en/latest/).
 
 Developed by data scientists at ING Analytics, www.ing.com.
 
