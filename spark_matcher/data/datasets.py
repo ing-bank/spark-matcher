@@ -57,8 +57,8 @@ def _load_data_library(spark: SparkSession) -> Tuple[DataFrame, DataFrame]:
         Spark dataframe for DBLP data and a Spark dataframe for ACM data
 
     """
-    file_path_acm = resource_filename('spark_matcher.data', 'acm.zip')
-    file_path_dblp = resource_filename('spark_matcher.data', 'dblp.zip')
+    file_path_acm = resource_filename('spark_matcher.data', 'acm.csv')
+    file_path_dblp = resource_filename('spark_matcher.data', 'dblp.csv')
     acm_pdf = pd.read_csv(file_path_acm)
     dblp_pdf = pd.read_csv(file_path_dblp, encoding="ISO-8859-1")
 
@@ -85,8 +85,8 @@ def _load_data_voters(spark: SparkSession) -> Tuple[DataFrame, DataFrame]:
         two Spark dataframes containing voter data
 
     """
-    file_path_voters_1 = resource_filename('spark_matcher.data', 'voters_1.zip')
-    file_path_voters_2 = resource_filename('spark_matcher.data', 'voters_2.zip')
+    file_path_voters_1 = resource_filename('spark_matcher.data', 'voters_1.csv')
+    file_path_voters_2 = resource_filename('spark_matcher.data', 'voters_2.csv')
     voters_1_pdf = pd.read_csv(file_path_voters_1)
     voters_2_pdf = pd.read_csv(file_path_voters_2)
 
@@ -107,7 +107,7 @@ def _load_data_stoxx50(spark: SparkSession) -> DataFrame:
         Spark dataframe containing Eurostoxx 50 names and addresses
 
     """
-    file_path_stoxx50 = resource_filename('spark_matcher.data', 'stoxx50.zip')
+    file_path_stoxx50 = resource_filename('spark_matcher.data', 'stoxx50.csv')
     stoxx50_pdf = pd.read_csv(file_path_stoxx50)
 
     stoxx50_sdf = spark.createDataFrame(stoxx50_pdf)
