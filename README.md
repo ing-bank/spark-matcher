@@ -25,7 +25,10 @@ Developed by data scientists at ING Analytics, www.ing.com.
 
 ### Normal installation
 
-Install using PyPi:
+As Spark-Matcher is intended to be used with large datasets on a Spark cluster, it is assumed that Spark is already 
+installed. If that is not the case, first install Spark (`pip install pyspark`).
+
+Install Spark-Matcher using PyPi:
 
 ```
 pip install spark-matcher

@@ -1,6 +1,9 @@
 How to Install
 **************
 
+As Spark-Matcher is intended to be used with large datasets on a Spark cluster, it is assumed that Spark is already
+installed. If that is not the case, first install Spark (:code:`pip install pyspark`).
+
 Install Spark-Matcher from PyPi:
 
 .. code-block:: bash
