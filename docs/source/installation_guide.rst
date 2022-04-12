@@ -1,8 +1,8 @@
 How to Install
 **************
 
-You need to clone the repo, cd into the repo directory and install it as follows:
+Install Spark-Matcher from PyPi:
 
 .. code-block:: bash
 
-   pip install .
+   pip install spark-matcher
