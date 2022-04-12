@@ -1,5 +1,6 @@
 <!--- BADGES: START --->
 [![Version](https://img.shields.io/pypi/v/spark-matcher)](https://pypi.org/project/spark-matcher/)
+[![Downloads](https://pepy.tech/badge/spark-matcher)](https://pepy.tech/project/spark-matcher)
 ![](https://img.shields.io/github/license/ing-bank/spark-matcher)
 [![Docs - GitHub.io](https://img.shields.io/static/v1?logo=readthdocs&style=flat&color=pink&label=docs&message=spark-matcher)][#docs-package]
 
