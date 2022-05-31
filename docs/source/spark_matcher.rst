@@ -17,8 +17,6 @@ Subpackages
    spark_matcher.scorer
    spark_matcher.similarity_metrics
 
-Submodules
-----------
 
 spark\_matcher.config module
 ----------------------------
@@ -40,14 +38,6 @@ spark\_matcher.utils module
 ---------------------------
 
 .. automodule:: spark_matcher.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: spark_matcher
    :members:
    :undoc-members:
    :show-inheritance:

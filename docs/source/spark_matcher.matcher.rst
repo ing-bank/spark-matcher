@@ -1,8 +1,6 @@
 spark\_matcher.matcher package
 ==============================
 
-Submodules
-----------
 
 spark\_matcher.matcher.matcher module
 -------------------------------------
@@ -12,10 +10,3 @@ spark\_matcher.matcher.matcher module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: spark_matcher.matcher
-   :members:
-   :undoc-members:
-   :show-inheritance:

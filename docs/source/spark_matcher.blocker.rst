@@ -1,8 +1,6 @@
 spark\_matcher.blocker package
 ==============================
 
-Submodules
-----------
 
 spark\_matcher.blocker.block\_learner module
 --------------------------------------------
@@ -16,14 +14,6 @@ spark\_matcher.blocker.blocking\_rules module
 ---------------------------------------------
 
 .. automodule:: spark_matcher.blocker.blocking_rules
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: spark_matcher.blocker
    :members:
    :undoc-members:
    :show-inheritance:
