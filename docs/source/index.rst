@@ -20,6 +20,7 @@ Since the implementation is done in PySpark, Spark Matcher can deal with extreme
    :caption: Contents:
 
    installation_guide
+   example.ipynb
    api/modules
 
 
