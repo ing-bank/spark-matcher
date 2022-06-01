@@ -1,6 +1,6 @@
 create_documentation:
-	cd docs && make clean
-	cd docs && make html
+	cd docs
+	make clean && make html
 
 deploy:
 	rm -rf dist
