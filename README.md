@@ -36,7 +36,7 @@ pip install spark-matcher
 
 ### Install with possibility to create documentation
 
-Add `[doc]` like this:
+First clone the Spark-Matcher repository and add `[doc]` like this:
 
 ```
 pip install ".[doc]"
