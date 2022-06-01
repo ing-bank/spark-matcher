@@ -21,7 +21,7 @@ Since the implementation is done in PySpark, Spark Matcher can deal with extreme
 
    installation_guide
    example.ipynb
-   modules
+   api/modules
 
 
 
