@@ -136,8 +136,6 @@ def apply_deduplication(cluster_score_threshold: float) -> Callable:
         Returns:
             a pandas Dataframe with the results from the hierarchical clustering of the deduplication
         """
-        # check that component is a unique value, otherwise the deduplication goes wrong!
-        assert len(component['component_id'].unique()) == 1
         component_id = component['component_id'][0]
 
         # perform the clustering:

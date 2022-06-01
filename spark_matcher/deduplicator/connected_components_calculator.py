@@ -80,9 +80,6 @@ class ConnectedComponentsCalculator:
             .drop('id')
         )
 
-        # verify the subgraphs of the connected components algorithm
-        assert scores_table_with_component_ids.filter(F.col('component_1') != F.col('component_2')).count() == 0
-
         scores_table_with_component_ids = (
             scores_table_with_component_ids
             .withColumnRenamed('component_1', 'component')
