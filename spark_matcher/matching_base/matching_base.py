@@ -28,15 +28,18 @@ class MatchingBase:
                  blocking_recall: float = 1.0, n_perfect_train_matches=1, n_train_samples: int = 100_000,
                  ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, verbose: int = 0):
         self.spark_session = spark_session
-        self.table_checkpointer = table_checkpointer
         if not self.table_checkpointer and checkpoint_dir:
             self.table_checkpointer = ParquetCheckPointer(self.spark_session, checkpoint_dir, "checkpoint_deduplicator")
+        elif table_checkpointer and not checkpoint_dir:
+            self.table_checkpointer = table_checkpointer
         else:
             warnings.warn(
                 'Either `table_checkpointer` or `checkpoint_dir` should be provided. This instance can only be used '
                 'when loading a previously saved instance.')
 
-        if col_names:
+        if col_names and field_info:
+            raise ValueError("Either `col_names` or `field_info` should be provided.")
+        elif col_names:
             self.col_names = col_names
             self.field_info = {col_name: [token_set_ratio, token_sort_ratio] for col_name in
                                self.col_names}
