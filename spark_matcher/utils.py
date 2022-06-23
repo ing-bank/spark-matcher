@@ -3,12 +3,33 @@
 #          Frits Hermans
 
 from typing import List
-
+import logging
 import numpy as np
 import pandas as pd
 from pyspark.ml.feature import StopWordsRemover
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
+
+
+def create_logger() -> logging.Logger:
+    """
+        Creates a logger
+    """
+    logger = logging.getLogger('debug_spark_matcher')
+    logger.setLevel(logging.DEBUG)
+
+    if not (logger.hasHandlers() and len(logger.handlers)):
+        ch = logging.StreamHandler()
+        logger.addHandler(ch)
+    else:
+        ch = logger.handlers[0]
+
+    ch.setLevel(logging.DEBUG)
+
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+
+    return logger
 
 
 def get_most_frequent_words(sdf: DataFrame, col_name: str, min_df=2, top_n_words=1_000) -> pd.DataFrame:
