@@ -30,7 +30,7 @@ class MatchingBase:
         self.spark_session = spark_session
         if not self.table_checkpointer and checkpoint_dir:
             self.table_checkpointer = ParquetCheckPointer(self.spark_session, checkpoint_dir, "checkpoint_deduplicator")
-        elif table_checkpointer and not checkpoint_dir:
+        elif table_checkpointer:
             self.table_checkpointer = table_checkpointer
         else:
             warnings.warn(
