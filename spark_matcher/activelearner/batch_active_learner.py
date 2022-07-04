@@ -11,7 +11,7 @@ from cardinal.base import BaseQuerySampler
 
         
 class TwoStepKMeansSamplerExtended(TwoStepKMeansSampler):
-    """Extends TwoStepKMeansSampler class to include confidence score
+    """Extends TwoStepKMeansSampler class to include uncertainty score
     """
 
     def __init__(self, beta: int, classifier, batch_size: int,
