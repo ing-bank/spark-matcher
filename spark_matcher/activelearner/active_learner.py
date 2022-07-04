@@ -12,7 +12,7 @@ from pyspark.sql import DataFrame
 from sklearn.base import BaseEstimator
 
 
-class ScoringLearner:
+class ConfidenceLearner:
     """
     Class to train a string matching model using active learning.
     Attributes:

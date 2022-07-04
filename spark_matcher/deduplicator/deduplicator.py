@@ -42,6 +42,7 @@ class Deduplicator(MatchingBase):
         ratio_hashed_samples: ratio of hashed samples to be created for training, rest is sampled randomly
         n_perfect_train_matches: nr of perfect matches used for training
         scorer: a Scorer object used for scoring pairs
+        active_learning_method: active learning method for labeling data, two available options: 'uncertainty' and 'diverse_batch'. the default option is 'uncertainty'
         verbose: sets verbosity
         max_edges_clustering: max number of edges per component that enters clustering
         edge_filter_thresholds: list of score thresholds to use for filtering when components are too large
@@ -52,7 +53,7 @@ class Deduplicator(MatchingBase):
                  field_info: Optional[Dict] = None, blocking_rules: Optional[List[BlockingRule]] = None,
                  blocking_recall: float = 1.0, table_checkpointer: Optional[TableCheckpointer] = None,
                  checkpoint_dir: Optional[str] = None, n_perfect_train_matches=1, n_train_samples: int = 100_000,
-                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, verbose: int = 0,
+                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, active_learning_method = 'uncertainty', verbose: int = 0,
                  max_edges_clustering: int = 500_000,
                  edge_filter_thresholds: List[float] = [0.45, 0.55, 0.65, 0.75, 0.85, 0.95],
                  cluster_score_threshold: float = 0.5):

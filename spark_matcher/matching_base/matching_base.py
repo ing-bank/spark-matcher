@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from thefuzz.fuzz import token_set_ratio, token_sort_ratio
 
-from spark_matcher.activelearner.active_learner import ScoringLearner
+from spark_matcher.activelearner import ConfidenceLearner, DiverseMiniBatchLearner
 from spark_matcher.blocker.block_learner import BlockLearner
 from spark_matcher.sampler.training_sampler import HashSampler, RandomSampler
 from spark_matcher.scorer.scorer import Scorer
@@ -26,7 +26,7 @@ class MatchingBase:
                  checkpoint_dir: Optional[str] = None, col_names: Optional[List[str]] = None,
                  field_info: Optional[Dict] = None, blocking_rules: Optional[List[BlockingRule]] = None,
                  blocking_recall: float = 1.0, n_perfect_train_matches=1, n_train_samples: int = 100_000,
-                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, verbose: int = 0):
+                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, active_learning_method: str= 'uncertainty', verbose: int = 0):
         self.spark_session = spark_session
         self.table_checkpointer = table_checkpointer
         if not self.table_checkpointer and checkpoint_dir:
@@ -56,7 +56,15 @@ class MatchingBase:
 
         if not scorer:
             scorer = Scorer(self.spark_session)
-        self.scoring_learner = ScoringLearner(self.col_names, scorer, verbose=self.verbose)
+        
+        if active_learning_method == 'uncertainty':
+            self.scoring_learner = ConfidenceLearner(self.col_names, scorer, verbose=self.verbose)
+        elif active_learning_method == 'diverse_batch':
+            self.scoring_learner = DiverseMiniBatchLearner(self.col_names, scorer, verbose=self.verbose)
+        else:
+            warnings.warn('active learning method is not properly defined, so the defualt value is uncertainty method!')
+            self.scoring_learner = ConfidenceLearner(self.col_names, scorer, verbose=self.verbose)
+
 
         self.blocking_rules = blocking_rules
         if not self.blocking_rules:
@@ -93,7 +101,7 @@ class MatchingBase:
         """
         with open(path, 'rb') as f:
             loaded_obj = dill.load(f)
-
+        
         # the spark session that was removed before saving needs to be filled with the spark session of this instance
         loaded_obj['spark_session'] = self.spark_session
         setattr(loaded_obj['scoring_learner'].learner.estimator, 'spark_session', self.spark_session)
