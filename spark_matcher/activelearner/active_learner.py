@@ -1,11 +1,11 @@
-from typing import List, Optional, Union
+from typing import List, Union
 import numpy as np
 import pandas as pd
 from modAL.models import ActiveLearner
 from modAL.uncertainty import uncertainty_sampling
 from pyspark.sql import DataFrame
 from sklearn.base import BaseEstimator
-from spark_matcher.activelearner.base import ActiveLearnerBase
+from spark_matcher.activelearner.active_learner_base import ActiveLearnerBase
 
 
 class ConfidenceLearner(ActiveLearnerBase):
@@ -51,7 +51,7 @@ class ConfidenceLearner(ActiveLearnerBase):
                            identical_records['y'].values)
         self.train_samples = pd.concat([self.train_samples, identical_records])
 
-    def fit(self, X: pd.DataFrame) -> 'ScoringLearner':
+    def fit(self, X: pd.DataFrame) -> 'ConfidenceLearner':
         """
         Fit ScoringLearner instance on pairs of strings
         Args:
@@ -63,18 +63,16 @@ class ConfidenceLearner(ActiveLearnerBase):
         # automatically label all perfect train matches:
         identical_records = X[X['perfect_train_match']].copy()
         self.label_perfect_train_matches(identical_records)
-        X = X.drop(identical_records.index).reset_index(drop=True)  # remove identical records to avoid double labelling
-
-        for i in range(self.n_queries):
+        # remove identical records to avoid double labelling
+        X = X.drop(identical_records.index).reset_index(drop=True)
+        for _ in range(self.n_queries):
             query_idx, query_inst = self.learner.query(np.array(X['similarity_metrics'].tolist()))
-
             if self.learner.estimator.fitted_:
                 # the uncertainty calculations need a fitted estimator
                 # however it can occur that the estimator can only be fit after a couple rounds of querying
                 self.calculate_uncertainty(query_inst)
                 if self.verbose >= 2:
                     self.show_min_max_scores(X)
-
             y_new = self.get_active_learning_input(X.iloc[query_idx].iloc[0])
             if y_new == 'p':  # use previous (input is 'p')
                 y_new = self.get_active_learning_input(query_inst_prev.iloc[0])
@@ -86,12 +84,9 @@ class ConfidenceLearner(ActiveLearnerBase):
                 train_sample_to_add = X.iloc[query_idx].copy()
                 train_sample_to_add['y'] = y_new
                 self.train_samples = pd.concat([self.train_samples, train_sample_to_add])
-
             X = X.drop(query_idx).reset_index(drop=True)
-
             if self.is_converged():
                 print("Classifier converged, enter 'f' to stop training")
-
             if y_new == '1':
                 self.counter_positive += 1
             elif y_new == '0':

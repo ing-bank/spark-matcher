@@ -3,12 +3,10 @@
 #          Frits Hermans
 
 from typing import Optional, List, Dict
-
 from pyspark.sql import DataFrame, functions as F
 from pyspark.sql import SparkSession
 from pyspark.sql import Window
 from sklearn.exceptions import NotFittedError
-
 from spark_matcher.blocker.blocking_rules import BlockingRule
 from spark_matcher.matching_base.matching_base import MatchingBase
 from spark_matcher.scorer.scorer import Scorer
@@ -40,18 +38,19 @@ class Matcher(MatchingBase):
         ratio_hashed_samples: ratio of hashed samples to be created for training, rest is sampled randomly
         n_perfect_train_matches: nr of perfect matches used for training
         scorer: a Scorer object used for scoring pairs
-        active_learning_method: active learning method for labeling data, two available options: 'uncertainty' and 'diverse_batch'. The default method is 'uncertainty'.
+        active_learning_method: active learning method for labeling data, two available options: 'uncertainty' 
+                                    and 'diverse_batch'. The default method is 'uncertainty'.
         verbose: sets verbosity
     """
     def __init__(self, spark_session: SparkSession, table_checkpointer: Optional[TableCheckpointer]=None,
                  checkpoint_dir: Optional[str]=None, col_names: Optional[List[str]] = None,
                  field_info: Optional[Dict] = None, blocking_rules: Optional[List[BlockingRule]] = None,
                  blocking_recall: float = 1.0, n_perfect_train_matches=1, n_train_samples: int = 100_000,
-                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, active_learning_method = 'uncertainty', 
-                 verbose: int = 0):
+                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, 
+                 active_learning_method = 'uncertainty', batch_size = 5, verbose: int = 0):
         super().__init__(spark_session, table_checkpointer, checkpoint_dir, col_names, field_info, blocking_rules,
-                         blocking_recall, n_perfect_train_matches, n_train_samples, ratio_hashed_samples, scorer, active_learning_method,
-                         verbose)
+                         blocking_recall, n_perfect_train_matches, n_train_samples, ratio_hashed_samples, scorer, 
+                         active_learning_method, batch_size, verbose)
         self.fitted_ = False
 
     def _create_predict_pairs_table(self, sdf_1_blocked: DataFrame, sdf_2_blocked: DataFrame) -> DataFrame:
