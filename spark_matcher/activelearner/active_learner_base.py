@@ -143,7 +143,7 @@ class ActiveLearnerBase(ABC):
         X_all = pd.concat((X, self.train_samples))
         pred_max = self.predict_proba(np.array(X_all['similarity_metrics'].tolist())).max(axis=0)
         print(f"""The lowest and highest score of model for the entire dataset are :
-         [{1 - pred_max[0]:.3f},  {pred_max[1]:.3f}]""")
+                [{1 - pred_max[0]:.3f},  {pred_max[1]:.3f}]""")
 
     @abstractmethod
     def label_perfect_train_matches(self, *args, **kwargs) -> None:

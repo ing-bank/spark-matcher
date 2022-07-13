@@ -194,12 +194,12 @@ class MatchingBase:
         # get labelled positives from activelearner
         positive_train_labels = (self.scoring_learner.train_samples[self.scoring_learner.train_samples['y'] == '1']
                                  .rename(columns={'y': 'label'}))
+
         metrics_table = pd.concat([metrics_table, positive_train_labels]).drop_duplicates(
             subset=[col + "_1" for col in self.col_names] + [col + "_2" for col in self.col_names], keep='last')
 
         metrics_table = metrics_table[metrics_table.label == '1']
         metrics_table['row_id'] = np.arange(len(metrics_table))
-        self.spark_session.conf.set('spark.sql.execution.arrow.pyspark.enabled', 'true')
         return self.spark_session.createDataFrame(metrics_table)
 
     def _add_suffix_to_col_names(self, sdf: DataFrame, suffix: int):

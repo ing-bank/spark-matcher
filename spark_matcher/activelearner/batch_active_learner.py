@@ -61,12 +61,12 @@ class DiverseMiniBatchLearner(ActiveLearnerBase):
             
         y_new = {}
         for index, row in query_inst.iterrows():
-            user_input = self.get_active_learning_input(row)[0]
+            user_input = self.get_active_learning_input(row)
             
             if user_input == 'p':
                 if y_new:
                     prev_index = list(y_new.keys())[-1]
-                    user_input_prev = self.get_active_learning_input(query_inst.loc[prev_index])[0]
+                    user_input_prev = self.get_active_learning_input(query_inst.loc[prev_index])
                     y_new[prev_index] = user_input_prev
                 else:
                     print('Model is already trained on previous batch')
@@ -96,8 +96,8 @@ class DiverseMiniBatchLearner(ActiveLearnerBase):
         identical_records['y'] = '1'
         # adding one negative sample to train the model on both classes 
         n_feature = len(identical_records['similarity_metrics'].values.tolist()[0])
-        x_perfect = np.append(np.array(identical_records['similarity_metrics'].values.tolist())
-                            , np.zeros((1,n_feature)), axis=0)
+        x_perfect = np.append(np.array(identical_records['similarity_metrics'].values.tolist()) 
+                                ,np.zeros((1,n_feature)), axis=0)
         y_perfect = np.append(identical_records['y'].values, np.array(['0']), axis=0)
         
         # fitting the learner
@@ -130,10 +130,10 @@ class DiverseMiniBatchLearner(ActiveLearnerBase):
             if 'f' in y_new.values():
                 break
             # processing labelled samples and removing 's' ones or 'p'
-            removed_skipped_feedback = {key:value for key, value in y_new.items()
-                                        if (value !='s') or (value !='p')}
+            removed_skipped_feedback = {key:value[0] for key, value in y_new.items()
+                                        if (value !='s') and (value !='p')}
             train_sample_to_add = X.iloc[[*removed_skipped_feedback]].copy()
-            train_sample_to_add['y'] = list(removed_skipped_feedback.values())
+            train_sample_to_add['y'] = np.array(list(removed_skipped_feedback.values()))
             self.train_samples = pd.concat([self.train_samples, train_sample_to_add])
             # update the pool by removing already labeled batch
             X = X.drop([*removed_skipped_feedback]).reset_index(drop=True)
