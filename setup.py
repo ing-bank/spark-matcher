@@ -7,9 +7,10 @@ base_packages = [
     'python-Levenshtein',
     'thefuzz',
     'modAL',
+    'cardinal',
     'pytest',
     'multipledispatch',
-    'dill',
+    'dill==0.2',
     'graphframes',
     'scipy'
 ]

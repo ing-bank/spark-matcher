@@ -4,14 +4,12 @@
 
 import warnings
 from typing import Optional, List, Dict
-
 import dill
 from pyspark.sql import DataFrame, functions as F, SparkSession
 import numpy as np
 import pandas as pd
 from thefuzz.fuzz import token_set_ratio, token_sort_ratio
-
-from spark_matcher.activelearner.active_learner import ScoringLearner
+from spark_matcher.activelearner import ConfidenceLearner, DiverseMiniBatchLearner
 from spark_matcher.blocker.block_learner import BlockLearner
 from spark_matcher.sampler.training_sampler import HashSampler, RandomSampler
 from spark_matcher.scorer.scorer import Scorer
@@ -21,12 +19,13 @@ from spark_matcher.table_checkpointer import TableCheckpointer, ParquetCheckPoin
 
 
 class MatchingBase:
-
+    
     def __init__(self, spark_session: SparkSession, table_checkpointer: Optional[TableCheckpointer] = None,
                  checkpoint_dir: Optional[str] = None, col_names: Optional[List[str]] = None,
                  field_info: Optional[Dict] = None, blocking_rules: Optional[List[BlockingRule]] = None,
                  blocking_recall: float = 1.0, n_perfect_train_matches=1, n_train_samples: int = 100_000,
-                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, verbose: int = 0):
+                 ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, 
+                 active_learning_method: str= 'uncertainty', batch_size: int = 5, verbose: int = 0):
         self.spark_session = spark_session
         self.table_checkpointer = table_checkpointer
         if not self.table_checkpointer and checkpoint_dir:
@@ -56,7 +55,16 @@ class MatchingBase:
 
         if not scorer:
             scorer = Scorer(self.spark_session)
-        self.scoring_learner = ScoringLearner(self.col_names, scorer, verbose=self.verbose)
+        
+        if active_learning_method == 'uncertainty':
+            self.scoring_learner = ConfidenceLearner(self.col_names, scorer, verbose=self.verbose)
+        elif active_learning_method == 'diverse_batch':
+            self.scoring_learner = DiverseMiniBatchLearner(self.col_names, scorer
+            , batch_size=batch_size, verbose=self.verbose)
+        else:
+            warnings.warn('active learning method is not properly defined, so the defualt value is uncertainty method!')
+            self.scoring_learner = ConfidenceLearner(self.col_names, scorer, verbose=self.verbose)
+
 
         self.blocking_rules = blocking_rules
         if not self.blocking_rules:
@@ -93,7 +101,7 @@ class MatchingBase:
         """
         with open(path, 'rb') as f:
             loaded_obj = dill.load(f)
-
+        
         # the spark session that was removed before saving needs to be filled with the spark session of this instance
         loaded_obj['spark_session'] = self.spark_session
         setattr(loaded_obj['scoring_learner'].learner.estimator, 'spark_session', self.spark_session)
@@ -186,11 +194,11 @@ class MatchingBase:
         # get labelled positives from activelearner
         positive_train_labels = (self.scoring_learner.train_samples[self.scoring_learner.train_samples['y'] == '1']
                                  .rename(columns={'y': 'label'}))
+
         metrics_table = pd.concat([metrics_table, positive_train_labels]).drop_duplicates(
             subset=[col + "_1" for col in self.col_names] + [col + "_2" for col in self.col_names], keep='last')
 
         metrics_table = metrics_table[metrics_table.label == '1']
-
         metrics_table['row_id'] = np.arange(len(metrics_table))
         return self.spark_session.createDataFrame(metrics_table)
 
