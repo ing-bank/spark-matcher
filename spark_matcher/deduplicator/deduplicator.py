@@ -47,6 +47,8 @@ class Deduplicator(MatchingBase):
         edge_filter_thresholds: list of score thresholds to use for filtering when components are too large
         cluster_score_threshold: threshold value between [0.0, 1.0], only pairs are put together in clusters if
                                  cluster similarity scores are >= cluster_score_threshold
+        cluster_linkage_method: linkage method to be used within hierarchical clustering, can take the values 'centroid',
+        'single', 'complete', 'average', 'weighted', 'median' and 'ward'
     """
     def __init__(self, spark_session: SparkSession, col_names: Optional[List[str]] = None,
                  field_info: Optional[Dict] = None, blocking_rules: Optional[List[BlockingRule]] = None,
@@ -55,7 +57,7 @@ class Deduplicator(MatchingBase):
                  ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, verbose: int = 0,
                  max_edges_clustering: int = 500_000,
                  edge_filter_thresholds: List[float] = [0.45, 0.55, 0.65, 0.75, 0.85, 0.95],
-                 cluster_score_threshold: float = 0.5):
+                 cluster_score_threshold: float = 0.5, cluster_linkage_method: str = "centroid"):
 
         super().__init__(spark_session, table_checkpointer, checkpoint_dir, col_names, field_info, blocking_rules,
                          blocking_recall, n_perfect_train_matches, n_train_samples, ratio_hashed_samples, scorer,
@@ -65,6 +67,7 @@ class Deduplicator(MatchingBase):
         self.max_edges_clustering = max_edges_clustering
         self.edge_filter_thresholds = edge_filter_thresholds
         self.cluster_score_threshold = cluster_score_threshold
+        self.cluster_linkage_method = cluster_linkage_method
         # set the checkpoints directory for graphframes
         self.spark_session.sparkContext.setCheckpointDir('checkpoints/')
 
@@ -119,7 +122,7 @@ class Deduplicator(MatchingBase):
             scored_pairs_with_components
             .select('row_number_1', 'row_number_2', 'score', 'component_id')
             .groupby('component_id')
-            .applyInPandas(apply_deduplication(self.cluster_score_threshold) , schema=schema)
+            .applyInPandas(apply_deduplication(self.cluster_score_threshold, self.cluster_linkage_method) , schema=schema)
         )
         return self.table_checkpointer(clustered_results, "cached_clustered_results_table")
 

@@ -11,12 +11,13 @@ import scipy.spatial.distance as ssd
 from scipy.cluster import hierarchy
 
 
-def _perform_clustering(component: pd.DataFrame, threshold: float):
+def _perform_clustering(component: pd.DataFrame, threshold: float, linkage_method: str):
     """
     Apply hierarchical clustering to scored_pairs_table with component_ids
     Args:
         component: pandas dataframe containing all pairs and the similarity scores for a connected component
         threshold: threshold to apply in hierarchical clustering
+        linkage_method: linkage method to apply in hierarchical clustering
     Returns:
         Generator that contains tuples of ids and scores
     """
@@ -25,7 +26,7 @@ def _perform_clustering(component: pd.DataFrame, threshold: float):
     if len(component) > 1:
         i_to_id, condensed_distances = _get_condensed_distances(component)
 
-        linkage = hierarchy.linkage(condensed_distances, method='centroid')
+        linkage = hierarchy.linkage(condensed_distances, method=linkage_method)
         partition = hierarchy.fcluster(linkage, t=distance_threshold, criterion='distance')
 
         clusters: Dict[int, List[int]] = defaultdict(list)
@@ -116,13 +117,13 @@ def _convert_dedupe_result_to_pandas_dataframe(dedupe_result: List, component_id
     return pd.concat(df_list)
 
 
-def apply_deduplication(cluster_score_threshold: float) -> Callable:
+def apply_deduplication(cluster_score_threshold: float, cluster_linkage_method: str) -> Callable:
     """
-    This function is a wrapper function to parameterize the _apply_deduplucation function with an extra parameter for
-    the cluster_score_threshold. The cluster_score_threshold is a threshold that is used in the hierarchical clustering
-    to determine which entities are linked.
+    This function is a wrapper function to parameterize the _apply_deduplucation function with extra parameters for
+    the cluster_score_threshold and the linkage method.
     Args:
         cluster_score_threshold: a float in [0,1]
+        cluster_linkage_method: a string indicating the linkage method to be used for hierarchical clustering
     Returns:
         a function, i.e. _apply_deduplication, that can be called as a Pandas udf
     """
@@ -139,7 +140,7 @@ def apply_deduplication(cluster_score_threshold: float) -> Callable:
         component_id = component['component_id'][0]
 
         # perform the clustering:
-        component = list(_perform_clustering(component, cluster_score_threshold))
+        component = list(_perform_clustering(component, cluster_score_threshold, cluster_linkage_method))
 
         # convert the results to a dataframe:
         return _convert_dedupe_result_to_pandas_dataframe(component, component_id)
