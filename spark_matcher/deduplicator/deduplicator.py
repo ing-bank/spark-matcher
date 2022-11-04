@@ -6,6 +6,7 @@ from typing import Optional, List, Dict
 
 from pyspark.sql import DataFrame, SparkSession, functions as F, types as T
 from sklearn.exceptions import NotFittedError
+from scipy.cluster import hierarchy
 
 from spark_matcher.blocker.blocking_rules import BlockingRule
 from spark_matcher.deduplicator.connected_components_calculator import ConnectedComponentsCalculator
@@ -47,8 +48,8 @@ class Deduplicator(MatchingBase):
         edge_filter_thresholds: list of score thresholds to use for filtering when components are too large
         cluster_score_threshold: threshold value between [0.0, 1.0], only pairs are put together in clusters if
                                  cluster similarity scores are >= cluster_score_threshold
-        cluster_linkage_method: linkage method to be used within hierarchical clustering, can take the values 'centroid',
-        'single', 'complete', 'average', 'weighted', 'median' and 'ward'
+        cluster_linkage_method: linkage method to be used within hierarchical clustering, can take values such as
+        'centroid', 'single', 'complete', 'average', 'weighted', 'median', 'ward' etc.
     """
     def __init__(self, spark_session: SparkSession, col_names: Optional[List[str]] = None,
                  field_info: Optional[Dict] = None, blocking_rules: Optional[List[BlockingRule]] = None,
@@ -67,6 +68,8 @@ class Deduplicator(MatchingBase):
         self.max_edges_clustering = max_edges_clustering
         self.edge_filter_thresholds = edge_filter_thresholds
         self.cluster_score_threshold = cluster_score_threshold
+        if cluster_linkage_method not in list(hierarchy._LINKAGE_METHODS.keys()):
+            raise ValueError(f"Invalid cluster_linkage_method: {cluster_linkage_method}")
         self.cluster_linkage_method = cluster_linkage_method
         # set the checkpoints directory for graphframes
         self.spark_session.sparkContext.setCheckpointDir('checkpoints/')
