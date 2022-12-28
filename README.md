@@ -36,7 +36,13 @@ pip install spark-matcher
 
 ### Install with possibility to create documentation
 
-First clone the Spark-Matcher repository and add `[doc]` like this:
+Pandoc, the general markup converter needs to be available. You may follow the official [Pandoc installations instructions](https://pandoc.org/installing.html) or use conda:
+
+```
+conda install -c conda-forge pandoc
+```
+
+Then clone the Spark-Matcher repository and add `[doc]` like this:
 
 ```
 pip install ".[doc]"
