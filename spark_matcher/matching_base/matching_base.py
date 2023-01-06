@@ -29,12 +29,14 @@ class MatchingBase:
                  ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, verbose: int = 0):
         self.spark_session = spark_session
         self.table_checkpointer = table_checkpointer
-        if not self.table_checkpointer and checkpoint_dir:
-            self.table_checkpointer = ParquetCheckPointer(self.spark_session, checkpoint_dir, "checkpoint_deduplicator")
-        else:
-            warnings.warn(
-                'Either `table_checkpointer` or `checkpoint_dir` should be provided. This instance can only be used '
-                'when loading a previously saved instance.')
+        if not self.table_checkpointer:
+            if checkpoint_dir:
+                self.table_checkpointer = ParquetCheckPointer(self.spark_session, checkpoint_dir,
+                                                              "checkpoint_deduplicator")
+            else:
+                warnings.warn(
+                    'Either `table_checkpointer` or `checkpoint_dir` should be provided. This instance can only be used'
+                    ' when loading a previously saved instance.')
 
         if col_names:
             self.col_names = col_names
