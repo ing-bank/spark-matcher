@@ -6,7 +6,7 @@ base_packages = [
     'scikit-learn',
     'python-Levenshtein',
     'thefuzz',
-    'modAL',
+    'modAL-python',
     'pytest',
     'multipledispatch',
     'dill',
@@ -33,7 +33,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(name='Spark-Matcher',
-      version='0.3',
+      version='0.3.1',
       author="Ahmet Bayraktar, Stan Leisink, Frits Hermans",
       description="Record matching and entity resolution at scale in Spark",
       long_description=long_description,
