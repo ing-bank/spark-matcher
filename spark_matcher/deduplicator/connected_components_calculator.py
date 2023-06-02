@@ -6,6 +6,7 @@ from typing import List, Tuple
 
 from graphframes import GraphFrame
 from pyspark.sql import functions as F, types as T, DataFrame, Window
+from pyspark.sql.utils import AnalysisException
 
 from spark_matcher.table_checkpointer import TableCheckpointer
 
@@ -60,7 +61,7 @@ class ConnectedComponentsCalculator:
         # checkpointing.
         try:
             connected_components = graph.connectedComponents()
-        except:
+        except AnalysisException:
             connected_components = graph.connectedComponents(algorithm='graphx')
         return self.table_checkpointer(connected_components, checkpoint_name)
 
