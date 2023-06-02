@@ -6,6 +6,7 @@ from typing import List, Tuple
 
 from graphframes import GraphFrame
 from pyspark.sql import functions as F, types as T, DataFrame, Window
+from pyspark.sql.utils import AnalysisException
 
 from spark_matcher.table_checkpointer import TableCheckpointer
 
@@ -55,7 +56,13 @@ class ConnectedComponentsCalculator:
             a spark dataframe containing the connected components of a graph of scored pairs.
         """
         graph = self._create_graph(scores_table)
-        connected_components = graph.connectedComponents()
+        # Since graphframes 0.3.0, checkpointing is used for the connected components algorithm. The Spark cluster might
+        # not allow writing checkpoints. In such case we fall back to the graphx algorithm that doesn't require
+        # checkpointing.
+        try:
+            connected_components = graph.connectedComponents()
+        except AnalysisException:
+            connected_components = graph.connectedComponents(algorithm='graphx')
         return self.table_checkpointer(connected_components, checkpoint_name)
 
     @staticmethod
