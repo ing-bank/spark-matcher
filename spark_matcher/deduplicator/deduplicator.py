@@ -54,7 +54,7 @@ class Deduplicator(MatchingBase):
     def __init__(self, spark_session: SparkSession, col_names: Optional[List[str]] = None,
                  field_info: Optional[Dict] = None, blocking_rules: Optional[List[BlockingRule]] = None,
                  blocking_recall: float = 1.0, table_checkpointer: Optional[TableCheckpointer] = None,
-                 checkpoint_dir: Optional[str] = None, n_perfect_train_matches=1, n_train_samples: int = 100_000,
+                 checkpoint_dir: str = '/checkpoints/', n_perfect_train_matches=1, n_train_samples: int = 100_000,
                  ratio_hashed_samples: float = 0.5, scorer: Optional[Scorer] = None, verbose: int = 0,
                  max_edges_clustering: int = 500_000,
                  edge_filter_thresholds: List[float] = [0.45, 0.55, 0.65, 0.75, 0.85, 0.95],
@@ -72,7 +72,7 @@ class Deduplicator(MatchingBase):
             raise ValueError(f"Invalid cluster_linkage_method: {cluster_linkage_method}")
         self.cluster_linkage_method = cluster_linkage_method
         # set the checkpoints directory for graphframes
-        self.spark_session.sparkContext.setCheckpointDir('checkpoints/')
+        self.spark_session.sparkContext.setCheckpointDir(checkpoint_dir)
 
     def _create_predict_pairs_table(self, sdf_blocked: DataFrame) -> DataFrame:
         """
