@@ -205,7 +205,7 @@ class MatchingBase:
             sdf = sdf.withColumnRenamed(col, f"{col}_{suffix}")
         return sdf
 
-    def fit(self, sdf_1: DataFrame, sdf_2: Optional[DataFrame] = None) -> 'MatchingBase':
+    def fit(self, sdf_1: DataFrame, sdf_2: Optional[DataFrame] = None, ) -> 'MatchingBase':
         """
         Fit the MatchingBase instance on the two dataframes `sdf_1` and `sdf_2` using active learning. You will be
         prompted to enter whether the presented pairs are a match or not. Note that `sdf_2` is an optional argument.
@@ -220,14 +220,18 @@ class MatchingBase:
             Fitted MatchingBase instance
 
         """
+        # print("sdf_1", sdf_1)
         sdf_1 = self._simplify_dataframe_for_matching(sdf_1)
         if sdf_2:
             sdf_2 = self._simplify_dataframe_for_matching(sdf_2)
-
+        # print("sdf_1", sdf_1)
         pairs_table = self._create_train_pairs_table(sdf_1, sdf_2)
+        # print("pairs_table", pairs_table)
         metrics_table = self._calculate_metrics(pairs_table)
+        # print("metrics_table", metrics_table)
         metrics_table_pdf = metrics_table.toPandas()
-        self.scoring_learner.fit(metrics_table_pdf)
+        # print("metrics_table_pdf", metrics_table_pdf)
+        self.scoring_learner.fit(metrics_table_pdf, self.field_info)
         block_learning_input = self._create_blocklearning_input(metrics_table_pdf)
         self.blocker.fit(block_learning_input)
         self.fitted_ = True

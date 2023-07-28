@@ -66,7 +66,7 @@ class SimilarityMetrics:
 
         return similarity_udf
 
-    def _apply_distance_metrics(self) -> Column:
+    def _apply_distance_metrics(self, return_iterable=False) -> Column:
         """
         Function to apply all distance metrics in the right order to string pairs and returns them in an array. This
         array is used as input to the (logistic regression) scoring function.
@@ -83,6 +83,9 @@ class SimilarityMetrics:
                     SimilarityMetrics._create_similarity_metric_udf(similarity_function)(F.col(field_name_1),
                                                                                          F.col(field_name_2)))
                 distance_metrics_list.append(similarity_metric)
+
+        if return_iterable:
+            return distance_metrics_list
 
         array = F.array(*distance_metrics_list)
 

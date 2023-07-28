@@ -2,7 +2,7 @@
 #          Stan Leisink
 #          Frits Hermans
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -10,6 +10,7 @@ from modAL.models import ActiveLearner
 from modAL.uncertainty import uncertainty_sampling
 from pyspark.sql import DataFrame
 from sklearn.base import BaseEstimator
+from spark_matcher.similarity_metrics import SimilarityMetrics
 
 
 class ScoringLearner:
@@ -29,10 +30,11 @@ class ScoringLearner:
         verbose: sets verbosity
     """
     def __init__(self, col_names: List[str], scorer: BaseEstimator, min_nr_samples: int = 10,
-                 uncertainty_threshold: float = 0.1, uncertainty_improvement_threshold: float = 0.01,
-                 n_uncertainty_improvement: int = 5, n_queries: int = 9999, sampling_method=uncertainty_sampling,
-                 verbose: int = 0):
+                 train_samples: Optional[pd.DataFrame] = None, uncertainty_threshold: float = 0.1,
+                 uncertainty_improvement_threshold: float = 0.01, n_uncertainty_improvement: int = 5,
+                 n_queries: int = 9999, sampling_method=uncertainty_sampling,verbose: int = 0):
         self.col_names = col_names
+        # TODO provide X_training and y_training arguments for the ActiveLearner?
         self.learner = ActiveLearner(
             estimator=scorer,
             query_strategy=sampling_method
@@ -47,6 +49,7 @@ class ScoringLearner:
         self.uncertainties = []
         self.n_queries = n_queries
         self.verbose = verbose
+        self.train_samples = train_samples
 
     def _input_assert(self, message: str, choices: List[str]) -> str:
         """
@@ -150,24 +153,55 @@ class ScoringLearner:
         identical_records['y'] = '1'
         self.learner.teach(np.array(identical_records['similarity_metrics'].values.tolist()),
                            identical_records['y'].values)
-        self.train_samples = pd.concat([self.train_samples, identical_records])
+        self.train_samples = pd.concat([self.train_samples.toPandas(), identical_records])
 
-    def fit(self, X: pd.DataFrame) -> 'ScoringLearner':
+    def _train_on_validated_pairs(self, validated_pairs: pd.DataFrame, field_info) -> None:
+        """
+        To prevent asking labels for the pairs that were already validated in a previous active learning session, these
+        are provided to the active learner upfront.
+
+        Args:
+            validated_pairs: Pandas dataframe containing pairs that were already validated
+
+        """
+        similarity_metrics = pd.DataFrame({"similarity_metrics": SimilarityMetrics(field_info)._apply_distance_metrics(return_iterable=True)})
+        metrics_table = pd.concat([validated_pairs, similarity_metrics], axis=1)
+        # query_idx, query_inst = self.learner.query(np.array(metrics_table['similarity_metrics'].tolist()))
+
+        # for i in range(len(validated_pairs)):
+        #     self.learner.teach(np.array(metrics_table['similarity_metrics'].iloc[i]), validated_pairs['y'].iloc[i])
+        print(len(list(metrics_table.similarity_metrics)))
+        print(metrics_table.similarity_metrics.iloc[0])
+        print(metrics_table.similarity_metrics.iloc[1])
+        print(len(list(metrics_table.y)))
+        print(metrics_table.y.iloc[0])
+        self.learner.teach(np.array(metrics_table["similarity_metrics"]).T, np.array(metrics_table["y"]))
+
+        # self.learner.teach(np.array(validated_pairs['similarity_metrics'].values.tolist()),
+        #                    validated_pairs['y'].values)
+
+    def fit(self, X: pd.DataFrame, field_info: Dict) -> 'ScoringLearner':
         """
         Fit ScoringLearner instance on pairs of strings
         Args:
             X: Pandas dataframe containing pairs of strings and distance metrics of paired strings
+            field_info: field_info dictionary passed from the corresponding MatchingBase element
         """
-        self.train_samples = pd.DataFrame([])
         query_inst_prev = None
 
         # automatically label all perfect train matches:
         identical_records = X[X['perfect_train_match']].copy()
         self._label_perfect_train_matches(identical_records)
         X = X.drop(identical_records.index).reset_index(drop=True)  # remove identical records to avoid double labelling
+        # print('train_samples:', len(self.train_samples))
+        if self.train_samples is not None and len(self.train_samples) > 0:
+            self._train_on_validated_pairs(self.train_samples, field_info)
 
         for i in range(self.n_queries):
             query_idx, query_inst = self.learner.query(np.array(X['similarity_metrics'].tolist()))
+            print(query_idx)
+            print('lalala')
+            print(query_inst)
 
             if self.learner.estimator.fitted_:
                 # the uncertainty calculations need a fitted estimator
@@ -183,6 +217,10 @@ class ScoringLearner:
                 break
             query_inst_prev = X.iloc[query_idx]
             if y_new != 's':  # skip case (input is 's')
+                # print('y_new is:', np.asarray(y_new))
+                # print(np.asarray(y_new))
+                # print(np.asarray([X.iloc[query_idx]['similarity_metrics'].iloc[0]]))
+                # print(np.asarray([X.iloc[query_idx]['similarity_metrics'].iloc[0]]).shape)
                 self.learner.teach(np.asarray([X.iloc[query_idx]['similarity_metrics'].iloc[0]]), np.asarray(y_new))
                 train_sample_to_add = X.iloc[query_idx].copy()
                 train_sample_to_add['y'] = y_new
