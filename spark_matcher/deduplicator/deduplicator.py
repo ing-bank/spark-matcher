@@ -72,7 +72,7 @@ class Deduplicator(MatchingBase):
             raise ValueError(f"Invalid cluster_linkage_method: {cluster_linkage_method}")
         self.cluster_linkage_method = cluster_linkage_method
         # set the checkpoints directory for graphframes
-        self.spark_session.sparkContext.setCheckpointDir(checkpoint_dir)
+        self.spark_session.sparkContext.setCheckpointDir('/tmp/checkpoints')
 
     def _create_predict_pairs_table(self, sdf_blocked: DataFrame) -> DataFrame:
         """
