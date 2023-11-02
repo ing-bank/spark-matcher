@@ -2,10 +2,14 @@
 #          Stan Leisink
 #          Frits Hermans
 
+from typing import Optional
 import abc
 import os
+import logging
 
 from pyspark.sql import SparkSession, DataFrame
+
+from spark_matcher.utils import create_logger
 
 
 class TableCheckpointer(abc.ABC):
@@ -36,8 +40,12 @@ class HiveCheckpointer(TableCheckpointer):
         database: a name of a database or storage system where the tables can be saved
         checkpoint_prefix: a prefix of the name that can be used to save tables
     """
-    def __init__(self, spark_session: SparkSession, database: str, checkpoint_prefix: str = "checkpoint_spark_matcher"):
+    def __init__(self, spark_session: SparkSession, database: str, checkpoint_prefix: str = "checkpoint_spark_matcher",
+                 logger: Optional[logging.Logger] = None):
         super().__init__(spark_session, database, checkpoint_prefix)
+        self.logger = logger
+        if not self.logger:
+            self.logger = create_logger()
 
     def checkpoint_table(self, sdf: DataFrame, checkpoint_name: str):
         """
@@ -53,6 +61,7 @@ class HiveCheckpointer(TableCheckpointer):
             the same, unchanged, spark dataframe as the input dataframe. With the only difference that the
             dataframe is now read from disk as a checkpoint.
         """
+        self.logger.debug(f'caching {self.checkpoint_prefix}_{checkpoint_name}')
         sdf.write.saveAsTable(f"{self.database}.{self.checkpoint_prefix}_{checkpoint_name}",
                               mode="overwrite")
         sdf = self.spark_session.table(f"{self.database}.{self.checkpoint_prefix}_{checkpoint_name}")
@@ -67,8 +76,11 @@ class ParquetCheckPointer(TableCheckpointer):
         checkpoint_prefix: a prefix of the name that can be used to save tables
     """
     def __init__(self, spark_session: SparkSession, checkpoint_dir: str,
-                 checkpoint_prefix: str = "checkpoint_spark_matcher"):
+                 checkpoint_prefix: str = "checkpoint_spark_matcher", logger: Optional[logging.Logger] = None):
         super().__init__(spark_session, checkpoint_dir, checkpoint_prefix)
+        self.logger = logger
+        if not self.logger:
+            self.logger = create_logger()
 
     def checkpoint_table(self, sdf: DataFrame, checkpoint_name: str):
         """
@@ -85,6 +97,7 @@ class ParquetCheckPointer(TableCheckpointer):
             the same, unchanged, spark dataframe as the input dataframe. With the only difference that the
             dataframe is now read from disk as a checkpoint.
         """
+        self.logger.debug(f'caching {self.checkpoint_prefix}_{checkpoint_name}')
         file_name = os.path.join(f'{self.database}', f'{self.checkpoint_prefix}_{checkpoint_name}')
         sdf.write.parquet(file_name, mode='overwrite')
         return self.spark_session.read.parquet(file_name)
